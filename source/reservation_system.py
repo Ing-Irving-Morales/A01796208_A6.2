@@ -7,9 +7,10 @@ import unittest
 # Definición de clases
 class FileHandler:
     '''Clase para leer json con manejo de errores'''
-    
+
     @staticmethod
     def save_data(filename, data):
+        '''Función para guardar datos'''
         try:
             with open(filename, 'w', encoding='utf-8') as file:
                 json.dump([obj.__dict__ for obj in data], file, indent=4)
@@ -18,6 +19,7 @@ class FileHandler:
 
     @staticmethod
     def load_data(filename):
+        '''Función para cargar datos'''
         if not os.path.exists(filename):
             return []
         try:
@@ -35,6 +37,7 @@ class Customer:
         self.email = email
 
     def display_info(self):
+        '''Función para mostrar información'''
         return f"ID: {self.customer_id}, Nombre: {self.name}, Email: {self.email}"
 
 class Hotel:
@@ -46,7 +49,8 @@ class Hotel:
         self.rooms_available = int(rooms_available)
 
     def display_info(self):
-        return f"ID: {self.hotel_id}, Nombre: {self.name}, Ubicación: {self.location}, Habitaciones: {self.rooms_available}"
+        return f"ID: {self.hotel_id}, Nombre: {self.name},\
+                    Ubicación: {self.location}, Habitaciones: {self.rooms_available}"
 
     def reserve_room(self):
         if self.rooms_available > 0:
@@ -65,7 +69,8 @@ class Reservation:
         self.hotel_id = hotel_id
 
     def display_info(self):
-        return f"Reservation: {self.reservation_id}, Cliente: {self.customer_id}, Hotel: {self.hotel_id}"
+        return f"Reservation: {self.reservation_id},\
+                Cliente: {self.customer_id}, Hotel: {self.hotel_id}"
 
 #************************
 #Métodos para interactuar con las clases anteriores
@@ -233,7 +238,7 @@ class ReservationManager:
 
         if hotel.reserve_room():
             HotelManager.save_hotels()
-            
+
             cls.load_reservations()
             new_res = Reservation(reservation_id, customer_id, hotel_id)
             cls.reservations.append(new_res)
@@ -251,14 +256,14 @@ class ReservationManager:
             if res.reservation_id == reservation_id:
                 res_to_cancel = res
                 break
-        
+
         if res_to_cancel:
             # Si se cancela la reservación se actualiza la cuenta de habitaciones disponibles
             hotel = HotelManager.find_hotel(res_to_cancel.hotel_id)
             if hotel:
                 hotel.cancel_reservation()
                 HotelManager.save_hotels()
-            
+
             cls.reservations.remove(res_to_cancel)
             cls.save_reservations()
             return True
@@ -272,15 +277,15 @@ class TestHotelSystem(unittest.TestCase):
         self.hotel_file = 'hotels.json'
         self.cust_file = 'customers.json'
         self.res_file = 'reservations.json'
-        
+
         for f in [self.hotel_file, self.cust_file, self.res_file]:
             if os.path.exists(f):
                 os.remove(f)
 
     def tearDown(self):
-             for f in [self.hotel_file, self.cust_file, self.res_file]:
-                if os.path.exists(f):
-                    os.remove(f)
+        for f in [self.hotel_file, self.cust_file, self.res_file]:
+            if os.path.exists(f):
+                os.remove(f)
 
     # Pruebas para el Hotel
     def test_create_hotel(self):
@@ -344,10 +349,10 @@ class TestHotelSystem(unittest.TestCase):
     def test_create_reservation_success(self):
         HotelManager.create_hotel("H1", "Reservación del Hotel", "Ciudad", 2)
         CustomerManager.create_customer("C1", "Reservación del cliente", "cliente@tec.mx")
-        
+
         res = ReservationManager.create_reservation("R1", "C1", "H1")
         self.assertIsNotNone(res)
-        
+
         # Se verifica que las habitaciones disponibles dismuyan cuando se reserva una habitación
         h = HotelManager.find_hotel("H1")
         self.assertEqual(h.rooms_available, 1)
@@ -356,7 +361,7 @@ class TestHotelSystem(unittest.TestCase):
         # No existe el cliente
         HotelManager.create_hotel("H1", "Hotel", "Ciudad", 2)
         self.assertFalse(ReservationManager.create_reservation("R1", "C99", "H1"))
-        
+
         # No existe el hotel
         CustomerManager.create_customer("C1", "Cliente", "cliente@tec.mx")
         self.assertFalse(ReservationManager.create_reservation("R1", "C1", "H99"))
@@ -369,14 +374,14 @@ class TestHotelSystem(unittest.TestCase):
         HotelManager.create_hotel("H1", "Cancelación del Hotel", "Ciudad", 1)
         CustomerManager.create_customer("C1", "Cancelación del cliente", "cliente@tec.mx")
         ReservationManager.create_reservation("R1", "C1", "H1")
-        
+
         # Cancelación
         self.assertTrue(ReservationManager.cancel_reservation("R1"))
-        
+
         # Se verifica que las habitaciones disponibles se actualicen
         h = HotelManager.find_hotel("H1")
         self.assertEqual(h.rooms_available, 2)
-        
+
         # No se pudo cancelar la reservación porque no existe
         self.assertFalse(ReservationManager.cancel_reservation("R99"))
 
@@ -385,7 +390,7 @@ class TestHotelSystem(unittest.TestCase):
         # Se hace la prueba con un archivo de hoteles
         with open(self.hotel_file, 'w') as f:
             f.write("{ invalid json }")
-        
+
         # Se demuestra que el programa continua
         HotelManager.load_hotels()
         self.assertEqual(len(HotelManager.hotels), 0)
