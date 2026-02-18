@@ -362,31 +362,31 @@ class TestHotelSystem(unittest.TestCase):
         self.assertFalse(ReservationManager.create_reservation("R1", "C1", "H99"))
 
         # No hay habitaciones disponibles
-        HotelManager.create_hotel("H2", "Full Hotel", "City", 0)
+        HotelManager.create_hotel("H2", "Hotel Lleno", "Ciudad", 0)
         self.assertFalse(ReservationManager.create_reservation("R2", "C1", "H2"))
 
     def test_cancel_reservation(self):
-        HotelManager.create_hotel("H1", "Hotel Cancel", "City", 1)
-        CustomerManager.create_customer("C1", "Cust Cancel", "c@e.com")
+        HotelManager.create_hotel("H1", "Cancelación del Hotel", "Ciudad", 1)
+        CustomerManager.create_customer("C1", "Cancelación del cliente", "cliente@tec.mx")
         ReservationManager.create_reservation("R1", "C1", "H1")
         
-        # Cancel
+        # Cancelación
         self.assertTrue(ReservationManager.cancel_reservation("R1"))
         
-        # Verify room count restored
+        # Se verifica que las habitaciones disponibles se actualicen
         h = HotelManager.find_hotel("H1")
         self.assertEqual(h.rooms_available, 2)
         
-        # Fail to cancel non-existent
+        # No se pudo cancelar la reservación porque no existe
         self.assertFalse(ReservationManager.cancel_reservation("R99"))
 
-    # --- INVALID DATA TEST (Req 5) ---
+    # Pruebas para el manejo de datos inválidos
     def test_invalid_data_handling(self):
-        # Write garbage to file
+        # Se hace la prueba con un archivo de hoteles
         with open(self.hotel_file, 'w') as f:
             f.write("{ invalid json }")
         
-        # Should not crash, just load empty or handle error
+        # Se demuestra que el programa continua
         HotelManager.load_hotels()
         self.assertEqual(len(HotelManager.hotels), 0)
 
