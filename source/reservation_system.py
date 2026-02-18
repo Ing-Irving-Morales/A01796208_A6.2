@@ -1,3 +1,5 @@
+# pylint: disable=too-few-public-methods
+
 '''Actividad 6.2 '''
 
 import json
@@ -10,7 +12,7 @@ class FileHandler:
 
     @staticmethod
     def save_data(filename, data):
-        '''Función para guardar datos'''
+        '''Método para guardar datos'''
         try:
             with open(filename, 'w', encoding='utf-8') as file:
                 json.dump([obj.__dict__ for obj in data], file, indent=4)
@@ -19,7 +21,7 @@ class FileHandler:
 
     @staticmethod
     def load_data(filename):
-        '''Función para cargar datos'''
+        '''Método para cargar datos'''
         if not os.path.exists(filename):
             return []
         try:
@@ -37,7 +39,7 @@ class Customer:
         self.email = email
 
     def display_info(self):
-        '''Función para mostrar información'''
+        '''Método para mostrar información'''
         return f"ID: {self.customer_id}, Nombre: {self.name}, Email: {self.email}"
 
 class Hotel:
@@ -49,16 +51,19 @@ class Hotel:
         self.rooms_available = int(rooms_available)
 
     def display_info(self):
+        '''Método para mostrar información'''
         return f"ID: {self.hotel_id}, Nombre: {self.name},\
                     Ubicación: {self.location}, Habitaciones: {self.rooms_available}"
 
     def reserve_room(self):
+        '''Método para reservar habitaciones'''
         if self.rooms_available > 0:
             self.rooms_available -= 1
             return True
         return False
 
     def cancel_reservation(self):
+        '''Método para cancelar reservaciones'''
         self.rooms_available += 1
 
 class Reservation:
@@ -69,6 +74,7 @@ class Reservation:
         self.hotel_id = hotel_id
 
     def display_info(self):
+        '''Método para mostrar información'''
         return f"Reservation: {self.reservation_id},\
                 Cliente: {self.customer_id}, Hotel: {self.hotel_id}"
 
@@ -76,11 +82,13 @@ class Reservation:
 #Métodos para interactuar con las clases anteriores
 
 class HotelManager:
+    '''Clase para interactuar con los hoteles'''
     FILE = 'hotels.json'
     hotels = []
 
     @classmethod
     def load_hotels(cls):
+        '''Método para cargar la información de los hoteles'''
         data = FileHandler.load_data(cls.FILE)
         cls.hotels = []
         for item in data:
@@ -91,10 +99,12 @@ class HotelManager:
 
     @classmethod
     def save_hotels(cls):
+        '''Método para guardar la información de los hoteles'''
         FileHandler.save_data(cls.FILE, cls.hotels)
 
     @classmethod
     def create_hotel(cls, hotel_id, name, location, rooms):
+        '''Método para crear hoteles'''
         cls.load_hotels()
         if any(h.hotel_id == hotel_id for h in cls.hotels):
             print(f"El Hotel {hotel_id} ya existe")
@@ -106,6 +116,7 @@ class HotelManager:
 
     @classmethod
     def delete_hotel(cls, hotel_id):
+        '''Método para borrar hoteles'''
         cls.load_hotels()
         original_count = len(cls.hotels)
         cls.hotels = [h for h in cls.hotels if h.hotel_id != hotel_id]
@@ -116,6 +127,7 @@ class HotelManager:
 
     @classmethod
     def display_hotel(cls, hotel_id):
+        '''Método para mostrar la información de los hoteles'''
         cls.load_hotels()
         for hotel in cls.hotels:
             if hotel.hotel_id == hotel_id:
@@ -126,18 +138,23 @@ class HotelManager:
 
     @classmethod
     def modify_hotel(cls, hotel_id, name=None, location=None, rooms=None):
+        '''Método para cambiar la información de los hoteles'''
         cls.load_hotels()
         for hotel in cls.hotels:
             if hotel.hotel_id == hotel_id:
-                if name: hotel.name = name
-                if location: hotel.location = location
-                if rooms: hotel.rooms_available = rooms
+                if name:
+                    hotel.name = name
+                if location:
+                    hotel.location = location
+                if rooms:
+                    hotel.rooms_available = rooms
                 cls.save_hotels()
                 return True
         return False
 
     @classmethod
     def find_hotel(cls, hotel_id):
+        '''Método para buscar el hotel'''
         cls.load_hotels()
         for hotel in cls.hotels:
             if hotel.hotel_id == hotel_id:
@@ -145,11 +162,13 @@ class HotelManager:
         return None
 
 class CustomerManager:
+    '''Clase para interactuar con los clientes'''
     FILE = 'customers.json'
     customers = []
 
     @classmethod
     def load_customers(cls):
+        '''Método para cargar la información de los clientes'''
         data = FileHandler.load_data(cls.FILE)
         cls.customers = []
         for item in data:
@@ -160,10 +179,12 @@ class CustomerManager:
 
     @classmethod
     def save_customers(cls):
+        '''Método para guardar la información de los clientes'''
         FileHandler.save_data(cls.FILE, cls.customers)
 
     @classmethod
     def create_customer(cls, customer_id, name, email):
+        '''Método para crear un cliente'''
         cls.load_customers()
         if any(c.customer_id == customer_id for c in cls.customers):
             print(f"Cliente {customer_id} ya existe")
@@ -175,6 +196,7 @@ class CustomerManager:
 
     @classmethod
     def delete_customer(cls, customer_id):
+        '''Método para borrar un cliente'''
         cls.load_customers()
         original_count = len(cls.customers)
         cls.customers = [c for c in cls.customers if c.customer_id != customer_id]
@@ -185,6 +207,7 @@ class CustomerManager:
 
     @classmethod
     def display_customer(cls, customer_id):
+        '''Método para mostrar la información del cliente'''
         cls.load_customers()
         for cust in cls.customers:
             if cust.customer_id == customer_id:
@@ -195,21 +218,26 @@ class CustomerManager:
 
     @classmethod
     def modify_customer(cls, customer_id, name=None, email=None):
+        '''Método para modificar la información de los clientes'''
         cls.load_customers()
         for cust in cls.customers:
             if cust.customer_id == customer_id:
-                if name: cust.name = name
-                if email: cust.email = email
+                if name:
+                    cust.name = name
+                if email:
+                    cust.email = email
                 cls.save_customers()
                 return True
         return False
 
 class ReservationManager:
+    '''Clase para interactuar con las reservaciones'''
     FILE = 'reservations.json'
     reservations = []
 
     @classmethod
     def load_reservations(cls):
+        '''Método para cargar la información de las reservaciones'''
         data = FileHandler.load_data(cls.FILE)
         cls.reservations = []
         for item in data:
@@ -220,11 +248,12 @@ class ReservationManager:
 
     @classmethod
     def save_reservations(cls):
+        '''Método para guardar la información de las reservaciones'''
         FileHandler.save_data(cls.FILE, cls.reservations)
 
     @classmethod
     def create_reservation(cls, reservation_id, customer_id, hotel_id):
-        # Se requiere revisar la existencia del cliente
+        '''Se requiere revisar la existencia del cliente'''
         CustomerManager.load_customers()
         if not any(c.customer_id == customer_id for c in CustomerManager.customers):
             print("Cliente no encontrado")
@@ -244,12 +273,13 @@ class ReservationManager:
             cls.reservations.append(new_res)
             cls.save_reservations()
             return new_res
-        else:
-            print("No hay habitaciones disponibles")
-            return False
+
+        print("No hay habitaciones disponibles")
+        return False
 
     @classmethod
     def cancel_reservation(cls, reservation_id):
+        '''Método para cancelar una reservación'''
         cls.load_reservations()
         res_to_cancel = None
         for res in cls.reservations:
@@ -272,6 +302,7 @@ class ReservationManager:
 # Sección de testing
 
 class TestHotelSystem(unittest.TestCase):
+    '''Clase para realizar el testing'''
     def setUp(self):
         '''Se resetean todas las variables para que el testing corra bien'''
         self.hotel_file = 'hotels.json'
@@ -289,6 +320,7 @@ class TestHotelSystem(unittest.TestCase):
 
     # Pruebas para el Hotel
     def test_create_hotel(self):
+        '''Función para probar la creación de un hotel'''
         h = HotelManager.create_hotel("H1", "Hotel de Prueba", "Ciudad A", 10)
         self.assertEqual(h.name, "Hotel de Prueba")
         self.assertTrue(os.path.exists(self.hotel_file))
