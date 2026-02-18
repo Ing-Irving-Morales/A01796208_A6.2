@@ -1,40 +1,44 @@
+'''Actividad 6.2 '''
+
 import json
 import os
+import unittest
 
 # Definición de clases
 class FileHandler:
-    """Handles reading and writing to files with error handling."""
+    '''Clase para leer json con manejo de errores'''
     
     @staticmethod
     def save_data(filename, data):
         try:
-            with open(filename, 'w', encoding='utf-8') as f:
-                json.dump([obj.__dict__ for obj in data], f, indent=4)
+            with open(filename, 'w', encoding='utf-8') as file:
+                json.dump([obj.__dict__ for obj in data], file, indent=4)
         except IOError as e:
-            print(f"Error saving data to {filename}: {e}")
+            print(f"Error al guardar los datos en {filename}: {e}")
 
     @staticmethod
     def load_data(filename):
         if not os.path.exists(filename):
             return []
         try:
-            with open(filename, 'r', encoding='utf-8') as f:
-                return json.load(f)
+            with open(filename, 'r', encoding='utf-8') as file:
+                return json.load(file)
         except (json.JSONDecodeError, IOError) as e:
-            # Req 5: Handle invalid data, display error and continue
-            print(f"Error reading {filename}: {e}. Starting with empty list.")
+            print(f"Error al leer {filename}: {e}. El archivo está vacío")
             return []
 
 class Customer:
+    '''Clase para el cliente'''
     def __init__(self, customer_id, name, email):
         self.customer_id = customer_id
         self.name = name
         self.email = email
 
     def display_info(self):
-        return f"ID: {self.customer_id}, Name: {self.name}, Email: {self.email}"
+        return f"ID: {self.customer_id}, Nombre: {self.name}, Email: {self.email}"
 
 class Hotel:
+    '''Clase para el hotel'''
     def __init__(self, hotel_id, name, location, rooms_available):
         self.hotel_id = hotel_id
         self.name = name
@@ -42,7 +46,7 @@ class Hotel:
         self.rooms_available = int(rooms_available)
 
     def display_info(self):
-        return f"ID: {self.hotel_id}, Name: {self.name}, Loc: {self.location}, Rooms: {self.rooms_available}"
+        return f"ID: {self.hotel_id}, Nombre: {self.name}, Ubicación: {self.location}, Habitaciones: {self.rooms_available}"
 
     def reserve_room(self):
         if self.rooms_available > 0:
@@ -54,13 +58,17 @@ class Hotel:
         self.rooms_available += 1
 
 class Reservation:
+    '''Clase para la reservación'''
     def __init__(self, reservation_id, customer_id, hotel_id):
         self.reservation_id = reservation_id
         self.customer_id = customer_id
         self.hotel_id = hotel_id
 
     def display_info(self):
-        return f"ResID: {self.reservation_id}, CustID: {self.customer_id}, HotelID: {self.hotel_id}"
+        return f"Reservation: {self.reservation_id}, Cliente: {self.customer_id}, Hotel: {self.hotel_id}"
+
+#************************
+#Métodos para interactuar con las clases anteriores
 
 class HotelManager:
     FILE = 'hotels.json'
@@ -74,7 +82,7 @@ class HotelManager:
             try:
                 cls.hotels.append(Hotel(**item))
             except TypeError:
-                print(f"Skipping invalid hotel record: {item}")
+                print(f"Saltando registro ínvalido de hotel: {item}")
 
     @classmethod
     def save_hotels(cls):
@@ -84,7 +92,7 @@ class HotelManager:
     def create_hotel(cls, hotel_id, name, location, rooms):
         cls.load_hotels()
         if any(h.hotel_id == hotel_id for h in cls.hotels):
-            print(f"Hotel {hotel_id} already exists.")
+            print(f"El Hotel {hotel_id} ya existe")
             return False
         new_hotel = Hotel(hotel_id, name, location, rooms)
         cls.hotels.append(new_hotel)
@@ -108,7 +116,7 @@ class HotelManager:
             if hotel.hotel_id == hotel_id:
                 print(hotel.display_info())
                 return hotel.display_info()
-        print("Hotel not found.")
+        print("Hotel no encontrado")
         return None
 
     @classmethod
@@ -143,7 +151,7 @@ class CustomerManager:
             try:
                 cls.customers.append(Customer(**item))
             except TypeError:
-                print(f"Skipping invalid customer record: {item}")
+                print(f"Saltando registro ínvalido de cliente: {item}")
 
     @classmethod
     def save_customers(cls):
@@ -153,7 +161,7 @@ class CustomerManager:
     def create_customer(cls, customer_id, name, email):
         cls.load_customers()
         if any(c.customer_id == customer_id for c in cls.customers):
-            print(f"Customer {customer_id} already exists.")
+            print(f"Cliente {customer_id} ya existe")
             return False
         new_cust = Customer(customer_id, name, email)
         cls.customers.append(new_cust)
@@ -177,7 +185,7 @@ class CustomerManager:
             if cust.customer_id == customer_id:
                 print(cust.display_info())
                 return cust.display_info()
-        print("Customer not found.")
+        print("Cliente no encontrado")
         return None
 
     @classmethod
@@ -203,7 +211,7 @@ class ReservationManager:
             try:
                 cls.reservations.append(Reservation(**item))
             except TypeError:
-                print(f"Skipping invalid reservation record.")
+                print(f"Saltando registro ínvalido de reservación: {item}")
 
     @classmethod
     def save_reservations(cls):
@@ -211,20 +219,20 @@ class ReservationManager:
 
     @classmethod
     def create_reservation(cls, reservation_id, customer_id, hotel_id):
-        # Check if customer exists
+        # Se requiere revisar la existencia del cliente
         CustomerManager.load_customers()
         if not any(c.customer_id == customer_id for c in CustomerManager.customers):
-            print("Customer not found.")
+            print("Cliente no encontrado")
             return False
 
-        # Check if hotel exists and update room count
+        # Se requiere revisar si el hotel existe y hay reservación
         hotel = HotelManager.find_hotel(hotel_id)
         if not hotel:
-            print("Hotel not found.")
+            print("Hotel no encontrado")
             return False
 
         if hotel.reserve_room():
-            HotelManager.save_hotels() # Save updated room count
+            HotelManager.save_hotels()
             
             cls.load_reservations()
             new_res = Reservation(reservation_id, customer_id, hotel_id)
@@ -232,7 +240,7 @@ class ReservationManager:
             cls.save_reservations()
             return new_res
         else:
-            print("No rooms available.")
+            print("No hay habitaciones disponibles")
             return False
 
     @classmethod
@@ -245,7 +253,7 @@ class ReservationManager:
                 break
         
         if res_to_cancel:
-            # Restore room count
+            # Si se cancela la reservación se actualiza la cuenta de habitaciones disponibles
             hotel = HotelManager.find_hotel(res_to_cancel.hotel_id)
             if hotel:
                 hotel.cancel_reservation()
@@ -258,39 +266,31 @@ class ReservationManager:
 
 # Sección de testing
 
-import unittest
-import os
-import json
-from hotel_system import HotelManager, CustomerManager, ReservationManager, FileHandler
-
 class TestHotelSystem(unittest.TestCase):
-
     def setUp(self):
-        """Prepare environment before each test."""
+        '''Se resetean todas las variables para que el testing corra bien'''
         self.hotel_file = 'hotels.json'
         self.cust_file = 'customers.json'
         self.res_file = 'reservations.json'
         
-        # Ensure clean state
         for f in [self.hotel_file, self.cust_file, self.res_file]:
             if os.path.exists(f):
                 os.remove(f)
 
     def tearDown(self):
-        """Clean environment after each test."""
-        for f in [self.hotel_file, self.cust_file, self.res_file]:
-            if os.path.exists(f):
-                os.remove(f)
+             for f in [self.hotel_file, self.cust_file, self.res_file]:
+                if os.path.exists(f):
+                    os.remove(f)
 
-    # --- HOTEL TESTS ---
+    # Pruebas para el Hotel
     def test_create_hotel(self):
-        h = HotelManager.create_hotel("H1", "Test Hotel", "City A", 10)
-        self.assertEqual(h.name, "Test Hotel")
+        h = HotelManager.create_hotel("H1", "Hotel de Prueba", "Ciudad A", 10)
+        self.assertEqual(h.name, "Hotel de Prueba")
         self.assertTrue(os.path.exists(self.hotel_file))
 
     def test_create_duplicate_hotel(self):
-        HotelManager.create_hotel("H1", "Hotel 1", "City A", 10)
-        result = HotelManager.create_hotel("H1", "Hotel 2", "City B", 5)
+        HotelManager.create_hotel("H1", "Hotel 1", "Ciudad A", 10)
+        result = HotelManager.create_hotel("H1", "Hotel 2", "Ciudad B", 5)
         self.assertFalse(result)
 
     def test_display_hotel(self):
