@@ -1,6 +1,7 @@
 import json
 import os
 
+# Definición de clases
 class FileHandler:
     """Handles reading and writing to files with error handling."""
     
@@ -254,3 +255,140 @@ class ReservationManager:
             cls.save_reservations()
             return True
         return False
+
+# Sección de testing
+
+import unittest
+import os
+import json
+from hotel_system import HotelManager, CustomerManager, ReservationManager, FileHandler
+
+class TestHotelSystem(unittest.TestCase):
+
+    def setUp(self):
+        """Prepare environment before each test."""
+        self.hotel_file = 'hotels.json'
+        self.cust_file = 'customers.json'
+        self.res_file = 'reservations.json'
+        
+        # Ensure clean state
+        for f in [self.hotel_file, self.cust_file, self.res_file]:
+            if os.path.exists(f):
+                os.remove(f)
+
+    def tearDown(self):
+        """Clean environment after each test."""
+        for f in [self.hotel_file, self.cust_file, self.res_file]:
+            if os.path.exists(f):
+                os.remove(f)
+
+    # --- HOTEL TESTS ---
+    def test_create_hotel(self):
+        h = HotelManager.create_hotel("H1", "Test Hotel", "City A", 10)
+        self.assertEqual(h.name, "Test Hotel")
+        self.assertTrue(os.path.exists(self.hotel_file))
+
+    def test_create_duplicate_hotel(self):
+        HotelManager.create_hotel("H1", "Hotel 1", "City A", 10)
+        result = HotelManager.create_hotel("H1", "Hotel 2", "City B", 5)
+        self.assertFalse(result)
+
+    def test_display_hotel(self):
+        HotelManager.create_hotel("H1", "Display Hotel", "City A", 5)
+        info = HotelManager.display_hotel("H1")
+        self.assertIn("Display Hotel", info)
+        self.assertIsNone(HotelManager.display_hotel("H99"))
+
+    def test_modify_hotel(self):
+        HotelManager.create_hotel("H1", "Old Name", "City A", 5)
+        HotelManager.modify_hotel("H1", name="New Name", rooms=20)
+        h = HotelManager.find_hotel("H1")
+        self.assertEqual(h.name, "New Name")
+        self.assertEqual(h.rooms_available, 20)
+        self.assertFalse(HotelManager.modify_hotel("H99"))
+
+    def test_delete_hotel(self):
+        HotelManager.create_hotel("H1", "Del Hotel", "City A", 5)
+        self.assertTrue(HotelManager.delete_hotel("H1"))
+        self.assertFalse(HotelManager.delete_hotel("H1")) # Already deleted
+
+    # --- CUSTOMER TESTS ---
+    def test_create_customer(self):
+        c = CustomerManager.create_customer("C1", "John Doe", "john@email.com")
+        self.assertEqual(c.email, "john@email.com")
+
+    def test_create_duplicate_customer(self):
+        CustomerManager.create_customer("C1", "John", "j@e.com")
+        self.assertFalse(CustomerManager.create_customer("C1", "Jane", "j@e.com"))
+
+    def test_modify_customer(self):
+        CustomerManager.create_customer("C1", "John", "old@e.com")
+        CustomerManager.modify_customer("C1", email="new@e.com")
+        # Reload to verify persistence
+        CustomerManager.load_customers()
+        self.assertEqual(CustomerManager.customers[0].email, "new@e.com")
+        self.assertFalse(CustomerManager.modify_customer("C99"))
+
+    def test_delete_customer(self):
+        CustomerManager.create_customer("C1", "John", "j@e.com")
+        self.assertTrue(CustomerManager.delete_customer("C1"))
+        self.assertFalse(CustomerManager.delete_customer("C99"))
+
+    def test_display_customer(self):
+        CustomerManager.create_customer("C1", "John", "j@e.com")
+        info = CustomerManager.display_customer("C1")
+        self.assertIn("John", info)
+        self.assertIsNone(CustomerManager.display_customer("C99"))
+
+    # --- RESERVATION TESTS ---
+    def test_create_reservation_success(self):
+        HotelManager.create_hotel("H1", "Hotel Res", "City", 2)
+        CustomerManager.create_customer("C1", "Cust Res", "c@e.com")
+        
+        res = ReservationManager.create_reservation("R1", "C1", "H1")
+        self.assertIsNotNone(res)
+        
+        # Verify room count decreased
+        h = HotelManager.find_hotel("H1")
+        self.assertEqual(h.rooms_available, 1)
+
+    def test_create_reservation_failure(self):
+        # Case: No Customer
+        HotelManager.create_hotel("H1", "Hotel", "City", 2)
+        self.assertFalse(ReservationManager.create_reservation("R1", "C99", "H1"))
+        
+        # Case: No Hotel
+        CustomerManager.create_customer("C1", "Cust", "c@e.com")
+        self.assertFalse(ReservationManager.create_reservation("R1", "C1", "H99"))
+
+        # Case: No Rooms
+        HotelManager.create_hotel("H2", "Full Hotel", "City", 0)
+        self.assertFalse(ReservationManager.create_reservation("R2", "C1", "H2"))
+
+    def test_cancel_reservation(self):
+        HotelManager.create_hotel("H1", "Hotel Cancel", "City", 1)
+        CustomerManager.create_customer("C1", "Cust Cancel", "c@e.com")
+        ReservationManager.create_reservation("R1", "C1", "H1")
+        
+        # Cancel
+        self.assertTrue(ReservationManager.cancel_reservation("R1"))
+        
+        # Verify room count restored
+        h = HotelManager.find_hotel("H1")
+        self.assertEqual(h.rooms_available, 2)
+        
+        # Fail to cancel non-existent
+        self.assertFalse(ReservationManager.cancel_reservation("R99"))
+
+    # --- INVALID DATA TEST (Req 5) ---
+    def test_invalid_data_handling(self):
+        # Write garbage to file
+        with open(self.hotel_file, 'w') as f:
+            f.write("{ invalid json }")
+        
+        # Should not crash, just load empty or handle error
+        HotelManager.load_hotels()
+        self.assertEqual(len(HotelManager.hotels), 0)
+
+if __name__ == '__main__':
+    unittest.main()
