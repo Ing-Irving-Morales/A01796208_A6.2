@@ -41,7 +41,7 @@ class Customer:
         '''Método para mostrar información'''
         return f"ID: {self.customer_id}, \
                 Nombre: {self.name}, Email: {self.email}"
-    
+
     def update_email(self, new_email):
         """Se actualiza el email del cliente, se verifica la @"""
         if "@" in new_email:
@@ -90,7 +90,8 @@ class Reservation:
                 Cliente: {self.customer_id}, Hotel: {self.hotel_id}"
 
     def belongs_to_customer(self, target_customer_id):
-        """Método para verificar si la reservación corresponde a un cliente en específico"""
+        """Método para verificar si la reservación
+        corresponde a un cliente en específico"""
         return self.customer_id == target_customer_id
 # ************************
 # Métodos para interactuar con las clases anteriores
@@ -414,17 +415,17 @@ class TestHotelSystem(unittest.TestCase):
         self.assertIsNone(CustomerManager.display_customer("C99"))
 
     def test_customer_update_email(self):
-        """Función para probar la actualización del email del cliente"""       
+        """Función para probar la actualización del email del cliente"""
         cust = Customer("C1", "Irving", "a01796208@tec.mx")
-        
+
         # El email se actualizó correctamente
         self.assertTrue(cust.update_email("irving@tec.mx"))
         self.assertEqual(cust.email, "irving@tec.mx")
-        
+
         # Test Case Negativo
         self.assertFalse(cust.update_email("invalid_email.com"))
-        self.assertEqual(cust.email, "irving@tec.mx")  # Ensure it didn't change  
-    
+        self.assertEqual(cust.email, "irving@tec.mx")
+
     # Pruebas para la reservación
     def test_create_reservation_success(self):
         '''Función para probar la creación de una reservación'''
@@ -477,12 +478,13 @@ class TestHotelSystem(unittest.TestCase):
         self.assertFalse(ReservationManager.cancel_reservation("R99"))
 
     def test_reservation_belongs_to_customer(self):
-        """Función para probar si la reservación corresponde a un cliente en específico"""
+        """Función para probar si la reservación
+        corresponde a un cliente en específico"""
         res = Reservation("R1", "C1", "H1")
-        
+
         # La reservación corresponde a un cliente en específico
         self.assertTrue(res.belongs_to_customer("C1"))
-        
+
         # Test Case Negativo
         self.assertFalse(res.belongs_to_customer("C99"))
 
